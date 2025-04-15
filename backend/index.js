@@ -6,32 +6,38 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Existing PUT route
+// Route to return different sets of numbers based on type
 app.put('/numbers/:type', (req, res) => {
     const { type } = req.params;
 
-    switch (type[0]) {
-        case 'p': {
-            const primes = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29];
-            return res.json({ numbers: primes });
-        }
-        case 'e': {
-            const evens = [2, 4, 6, 8, 10, 12, 14, 16, 18, 20];
-            return res.json({ numbers: evens });
-        }
-        case 'f': {
-            const fibonacci = [0, 1, 1, 2, 3, 5, 8, 13, 21, 34];
-            return res.json({ numbers: fibonacci });
-        }
-        case 'r': {
-            const randomNumbers = Array.from({ length: 10 }, () => Math.floor(Math.random() * 100));
-            return res.json({ numbers: randomNumbers });
-        }
-        default:
-            return res.status(400).json({ error: 'Invalid type parameter' });
+    if (!type || typeof type !== 'string') {
+        return res.status(400).json({ error: 'Type parameter is required' });
     }
+
+    const firstChar = type[0].toLowerCase();
+    let responseData;
+
+    switch (firstChar) {
+        case 'p':
+            responseData = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29];
+            break;
+        case 'e':
+            responseData = [2, 4, 6, 8, 10, 12, 14, 16, 18, 20];
+            break;
+        case 'f':
+            responseData = [0, 1, 1, 2, 3, 5, 8, 13, 21, 34];
+            break;
+        case 'r':
+            responseData = Array.from({ length: 10 }, () => Math.floor(Math.random() * 100));
+            break;
+        default:
+            return res.status(400).json({ error: 'Unsupported type provided' });
+    }
+
+    res.json({ numbers: responseData });
 });
 
+// Route to fetch a list of users
 app.get('/users', (req, res) => {
     const users = {
         "1": "Lucas Reed",
@@ -50,9 +56,11 @@ app.get('/users', (req, res) => {
         "14": "Nora Sanders",
         "15": "Henry Hughes"
     };
+
     res.json({ users });
 });
 
+// Fetch posts by user ID
 app.get('/users/:userid/posts', (req, res) => {
     const posts = [
         { id: 1, userId: 4, content: "Loving the new features on the app!" },
@@ -68,17 +76,17 @@ app.get('/users/:userid/posts', (req, res) => {
         { id: 11, userId: 11, content: "Just joined! Excited to explore." }
     ];
 
-    const { userid } = req.params;
-    const userPosts = posts.filter(post => post.userId === parseInt(userid));
+    const userId = parseInt(req.params.userid);
+    const filteredPosts = posts.filter(post => post.userId === userId);
 
-    if (userPosts.length > 0) {
-        res.json({ posts: userPosts });
+    if (filteredPosts.length > 0) {
+        res.json({ posts: filteredPosts });
     } else {
-        res.status(404).json({ error: `No posts found for user with id ${userid}` });
+        res.status(404).json({ error: `No posts found for user with id ${userId}` });
     }
 });
 
-
+// Fetch comments for a specific post
 app.get('/posts/:postId/comments', (req, res) => {
     const comments = [
         { id: 1, postId: 4, comment: "This feature is amazing!" },
@@ -94,20 +102,18 @@ app.get('/posts/:postId/comments', (req, res) => {
         { id: 11, postId: 11, comment: "Excited to explore this app!" }
     ];
 
-    const { postId } = req.params; // ✅ Corrected from userid to postId
-    const postComments = comments.filter(comment => comment.postId === parseInt(postId));
+    const postId = parseInt(req.params.postId);
+    const matchedComments = comments.filter(comment => comment.postId === postId);
 
-    if (postComments.length > 0) {
-        res.json({ comments: postComments });
+    if (matchedComments.length > 0) {
+        res.json({ comments: matchedComments });
     } else {
         res.status(404).json({ error: `No comments found for post with id ${postId}` });
     }
 });
 
-
-app.get('/users/:userid/posts')
-
 const PORT = 3000;
+
 app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
+    console.log(`Server is live on http://localhost:${PORT}`);
 });
